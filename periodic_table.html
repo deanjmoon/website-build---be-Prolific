@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Periodic Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4ede0;
+  --paper-dark: #e8dfc9;
+  --ink: #1a1612;
+  --ink-soft: #3d3530;
+  --ink-faint: #8a7d6f;
+  --accent: #8b2c2c;
+  --accent-soft: #b85450;
+  --line: #c9bfa8;
+
+  --c-nonmetal: #d4c5a0;
+  --c-noble: #c9a86b;
+  --c-alkali: #a85c5c;
+  --c-alkaline: #b87850;
+  --c-metalloid: #8a8268;
+  --c-postmetal: #6b7d8a;
+  --c-transition: #5a6b6b;
+  --c-lanthanide: #7a5d7a;
+  --c-actinide: #6b4a6b;
+  --c-unknown: #5a5450;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background:
+    radial-gradient(ellipse at top left, rgba(139, 44, 44, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(107, 74, 107, 0.05) 0%, transparent 50%),
+    var(--paper);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: 'Cormorant Garamond', serif;
+  min-height: 100vh;
+  padding: 32px 24px 80px;
+  position: relative;
+  overflow-x: auto;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(26, 22, 18, 0.08) 1px, transparent 0);
+  background-size: 3px 3px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: multiply;
+}
+
+.container {
+  max-width: 1480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 24px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+}
+
+.title-block h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: clamp(36px, 5vw, 64px);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  font-style: italic;
+}
+
+.title-block h1 .roman {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.title-block .subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--ink-faint);
+  margin-top: 12px;
+}
+
+.meta {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  line-height: 1.8;
+}
+
+.meta .count {
+  font-size: 28px;
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  display: block;
+  line-height: 1;
+  font-style: italic;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.controls .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  margin-right: 12px;
+}
+
+.filter-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.filter-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.filter-btn .swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 200px;
+  max-width: 280px;
+  margin-left: auto;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 0 6px 18px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus { border-bottom-color: var(--ink); }
+.search-box input::placeholder { color: var(--ink-faint); font-style: italic; }
+
+.search-box::before {
+  content: '⌕';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-faint);
+  font-size: 16px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.periodic-table {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(58px, 1fr));
+  grid-template-rows: repeat(10, auto);
+  gap: 4px;
+  min-width: 1100px;
+}
+
+.element {
+  aspect-ratio: 1;
+  background: var(--paper-dark);
+  border: 1px solid var(--ink);
+  padding: 5px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--ink);
+  user-select: none;
+}
+
+.element::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--cat-color, var(--c-unknown));
+  opacity: 0.18;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.element:hover {
+  transform: translateY(-3px);
+  z-index: 5;
+  box-shadow:
+    3px 4px 0 var(--ink),
+    6px 8px 16px rgba(26, 22, 18, 0.2);
+}
+
+.element:hover::before { opacity: 0.35; }
+
+.element.dimmed {
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.element .number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+}
+
+.element .symbol {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  letter-spacing: -0.02em;
+}
+
+.element .name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  font-weight: 400;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.element .mass {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  text-align: center;
+  color: var(--ink-soft);
+  position: relative;
+  z-index: 1;
+}
+
+/* Placeholder cells for the gaps and series indicators */
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-faint);
+  border: 1px dashed var(--line);
+  aspect-ratio: 1;
+}
+
+.period-label, .group-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+.series-spacer {
+  grid-column: span 18;
+  height: 12px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 22, 18, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-overlay.active { display: flex; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal {
+  background: var(--paper);
+  max-width: 640px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid var(--ink);
+  box-shadow: 8px 12px 0 var(--ink);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  background: var(--cat-color, var(--c-unknown));
+  position: relative;
+  color: var(--paper);
+}
+
+.modal-header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(244, 237, 224, 0.15) 1px, transparent 0);
+  background-size: 3px 3px;
+  pointer-events: none;
+}
+
+.modal-header .info { position: relative; z-index: 1; }
+
+.modal-header .modal-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.modal-header .modal-symbol {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 72px;
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-style: italic;
+}
+
+.modal-header .modal-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 400;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+.modal-header .modal-category {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-top: 8px;
+  opacity: 0.85;
+}
+
+.close-btn {
+  background: transparent;
+  border: 1px solid var(--paper);
+  color: var(--paper);
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.modal-body {
+  padding: 28px 32px 32px;
+}
+
+.props-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 32px;
+  margin-bottom: 24px;
+}
+
+.prop {
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+}
+
+.prop-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
+.prop-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.prop-value .unit {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 4px;
+}
+
+.summary {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-style: italic;
+}
+
+.summary::first-letter {
+  font-size: 32px;
+  font-weight: 600;
+  float: left;
+  line-height: 1;
+  margin-right: 6px;
+  margin-top: 2px;
+  color: var(--ink);
+  font-style: normal;
+}
+
+.legend {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--ink);
+}
+
+footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  body { padding: 20px 12px 60px; }
+  header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .meta { text-align: left; }
+  .search-box { margin-left: 0; max-width: 100%; }
+  .modal-header .modal-symbol { font-size: 56px; }
+  .props-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title-block">
+      <h1>Tabula <span class="roman">Periodica</span></h1>
+      <div class="subtitle">An ordered arrangement of the chemical elements · Est. 1869</div>
+    </div>
+    <div class="meta">
+      <span class="count" id="visible-count">118</span>
+      elements indexed<br>
+      after Mendeleev · revised
+    </div>
+  </header>
+
+  <div class="controls" id="controls">
+    <span class="label">Filter</span>
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="alkali metal"><span class="swatch" style="background: var(--c-alkali)"></span>Alkali</button>
+    <button class="filter-btn" data-filter="alkaline earth metal"><span class="swatch" style="background: var(--c-alkaline)"></span>Alkaline</button>
+    <button class="filter-btn" data-filter="transition metal"><span class="swatch" style="background: var(--c-transition)"></span>Transition</button>
+    <button class="filter-btn" data-filter="post-transition metal"><span class="swatch" style="background: var(--c-postmetal)"></span>Post-trans.</button>
+    <button class="filter-btn" data-filter="metalloid"><span class="swatch" style="background: var(--c-metalloid)"></span>Metalloid</button>
+    <button class="filter-btn" data-filter="nonmetal"><span class="swatch" style="background: var(--c-nonmetal)"></span>Nonmetal</button>
+    <button class="filter-btn" data-filter="noble gas"><span class="swatch" style="background: var(--c-noble)"></span>Noble gas</button>
+    <button class="filter-btn" data-filter="lanthanide"><span class="swatch" style="background: var(--c-lanthanide)"></span>Lanthanide</button>
+    <button class="filter-btn" data-filter="actinide"><span class="swatch" style="background: var(--c-actinide)"></span>Actinide</button>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="search by name or symbol…">
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="periodic-table" id="table"></div>
+  </div>
+
+  <footer>
+    <span>Click any element to inspect ·</span>
+    <span>118 elements · 7 periods · 18 groups</span>
+  </footer>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="info">
+        <div class="modal-number" id="m-number"></div>
+        <div class="modal-symbol" id="m-symbol"></div>
+        <div class="modal-name" id="m-name"></div>
+        <div class="modal-category" id="m-category"></div>
+      </div>
+      <button class="close-btn" id="close-btn">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="props-grid">
+        <div class="prop"><div class="prop-label">Atomic Mass</div><div class="prop-value" id="m-mass"></div></div>
+        <div class="prop"><div class="prop-label">Period · Group</div><div class="prop-value" id="m-pg"></div></div>
+        <div class="prop"><div class="prop-label">Electron Config.</div><div class="prop-value" id="m-config" style="font-size: 14px;"></div></div>
+        <div class="prop"><div class="prop-label">Phase at 20°C</div><div class="prop-value" id="m-phase"></div></div>
+        <div class="prop"><div class="prop-label">Melting Point</div><div class="prop-value" id="m-melt"></div></div>
+        <div class="prop"><div class="prop-label">Boiling Point</div><div class="prop-value" id="m-boil"></div></div>
+        <div class="prop"><div class="prop-label">Density</div><div class="prop-value" id="m-density"></div></div>
+        <div class="prop"><div class="prop-label">Discovered</div><div class="prop-value" id="m-disc"></div></div>
+      </div>
+      <div class="summary" id="m-summary"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORY_COLORS = {
+  'alkali metal': 'var(--c-alkali)',
+  'alkaline earth metal': 'var(--c-alkaline)',
+  'transition metal': 'var(--c-transition)',
+  'post-transition metal': 'var(--c-postmetal)',
+  'metalloid': 'var(--c-metalloid)',
+  'nonmetal': 'var(--c-nonmetal)',
+  'noble gas': 'var(--c-noble)',
+  'lanthanide': 'var(--c-lanthanide)',
+  'actinide': 'var(--c-actinide)',
+  'unknown': 'var(--c-unknown)'
+};
+
+const ELEMENTS = [
+  {n:1,s:'H',name:'Hydrogen',m:1.008,p:1,g:1,cat:'nonmetal',phase:'Gas',mp:'-259.16 °C',bp:'-252.87 °C',density:'0.00009 g/cm³',disc:'Henry Cavendish, 1766',config:'1s¹',summary:'The lightest and most abundant element in the universe. Fuels stars through fusion and forms the backbone of organic chemistry when bonded to carbon.'},
+  {n:2,s:'He',name:'Helium',m:4.0026,p:1,g:18,cat:'noble gas',phase:'Gas',mp:'-272.20 °C',bp:'-268.93 °C',density:'0.000178 g/cm³',disc:'Janssen & Lockyer, 1868',config:'1s²',summary:'A noble gas first detected in the Sun before it was found on Earth. Inert, cold, and the only element that does not solidify at standard pressure.'},
+  {n:3,s:'Li',name:'Lithium',m:6.94,p:2,g:1,cat:'alkali metal',phase:'Solid',mp:'180.50 °C',bp:'1342 °C',density:'0.534 g/cm³',disc:'Johan August Arfwedson, 1817',config:'[He] 2s¹',summary:'The lightest metal, soft enough to cut with a knife. Powers rechargeable batteries that move modern life — phones, laptops, electric vehicles.'},
+  {n:4,s:'Be',name:'Beryllium',m:9.0122,p:2,g:2,cat:'alkaline earth metal',phase:'Solid',mp:'1287 °C',bp:'2470 °C',density:'1.85 g/cm³',disc:'Louis Nicolas Vauquelin, 1798',config:'[He] 2s²',summary:'Strong, light, and transparent to X-rays. Used in aerospace alloys and high-precision instruments — but its dust is highly toxic.'},
+  {n:5,s:'B',name:'Boron',m:10.81,p:2,g:13,cat:'metalloid',phase:'Solid',mp:'2076 °C',bp:'3927 °C',density:'2.34 g/cm³',disc:'Davy, Gay-Lussac & Thénard, 1808',config:'[He] 2s² 2p¹',summary:'A metalloid essential to plant growth. Borax cleans laundry, borosilicate makes laboratory glass, and boron fibers stiffen aerospace composites.'},
+  {n:6,s:'C',name:'Carbon',m:12.011,p:2,g:14,cat:'nonmetal',phase:'Solid',mp:'3550 °C',bp:'4027 °C',density:'2.267 g/cm³',disc:'Known since antiquity',config:'[He] 2s² 2p²',summary:'The element of life. Forms more compounds than any other, from diamond to DNA. Its tetravalent bonding creates the architecture of organic chemistry.'},
+  {n:7,s:'N',name:'Nitrogen',m:14.007,p:2,g:15,cat:'nonmetal',phase:'Gas',mp:'-210.00 °C',bp:'-195.79 °C',density:'0.00125 g/cm³',disc:'Daniel Rutherford, 1772',config:'[He] 2s² 2p³',summary:'Makes up 78% of Earth\'s atmosphere. Essential to proteins and DNA, but its triple bond makes atmospheric nitrogen famously unreactive.'},
+  {n:8,s:'O',name:'Oxygen',m:15.999,p:2,g:16,cat:'nonmetal',phase:'Gas',mp:'-218.79 °C',bp:'-182.96 °C',density:'0.00143 g/cm³',disc:'Carl Wilhelm Scheele, 1772',config:'[He] 2s² 2p⁴',summary:'The breath of life and the rust on iron. Produced by photosynthesis, consumed by respiration, and the most abundant element in Earth\'s crust by mass.'},
+  {n:9,s:'F',name:'Fluorine',m:18.998,p:2,g:17,cat:'nonmetal',phase:'Gas',mp:'-219.67 °C',bp:'-188.11 °C',density:'0.00170 g/cm³',disc:'Henri Moissan, 1886',config:'[He] 2s² 2p⁵',summary:'The most reactive and electronegative element. Eats through glass, strengthens teeth as fluoride, and gives Teflon its slipperiness.'},
+  {n:10,s:'Ne',name:'Neon',m:20.180,p:2,g:18,cat:'noble gas',phase:'Gas',mp:'-248.59 °C',bp:'-246.08 °C',density:'0.000900 g/cm³',disc:'Ramsay & Travers, 1898',config:'[He] 2s² 2p⁶',summary:'A noble gas that glows red-orange when electrified. Lit Las Vegas, Tokyo, and the diners of mid-century America.'},
+  {n:11,s:'Na',name:'Sodium',m:22.990,p:3,g:1,cat:'alkali metal',phase:'Solid',mp:'97.79 °C',bp:'883 °C',density:'0.971 g/cm³',disc:'Humphry Davy, 1807',config:'[Ne] 3s¹',summary:'Soft, silvery, and explosively reactive with water. In compounds it is essential — table salt, baking soda, and the signals that run your nerves.'},
+  {n:12,s:'Mg',name:'Magnesium',m:24.305,p:3,g:2,cat:'alkaline earth metal',phase:'Solid',mp:'650 °C',bp:'1090 °C',density:'1.738 g/cm³',disc:'Joseph Black, 1755',config:'[Ne] 3s²',summary:'Light, strong, and burns with a brilliant white flame. The metal at the center of every chlorophyll molecule — the reason leaves are green.'},
+  {n:13,s:'Al',name:'Aluminium',m:26.982,p:3,g:13,cat:'post-transition metal',phase:'Solid',mp:'660.32 °C',bp:'2470 °C',density:'2.698 g/cm³',disc:'Hans Christian Ørsted, 1825',config:'[Ne] 3s² 3p¹',summary:'Earth\'s most abundant metal in the crust, yet once more precious than gold. Now wraps our food, frames our buildings, and lifts our aircraft.'},
+  {n:14,s:'Si',name:'Silicon',m:28.085,p:3,g:14,cat:'metalloid',phase:'Solid',mp:'1414 °C',bp:'3265 °C',density:'2.330 g/cm³',disc:'Jöns Jacob Berzelius, 1824',config:'[Ne] 3s² 3p²',summary:'The element of sand and circuits. Silicon\'s semiconductor properties power every chip, sensor, and solar panel in the digital age.'},
+  {n:15,s:'P',name:'Phosphorus',m:30.974,p:3,g:15,cat:'nonmetal',phase:'Solid',mp:'44.15 °C',bp:'280.5 °C',density:'1.823 g/cm³',disc:'Hennig Brand, 1669',config:'[Ne] 3s² 3p³',summary:'Discovered in evaporated urine. Glows in the dark, fertilizes the world\'s crops, and forms the backbone of DNA and ATP energy molecules.'},
+  {n:16,s:'S',name:'Sulfur',m:32.06,p:3,g:16,cat:'nonmetal',phase:'Solid',mp:'115.21 °C',bp:'444.61 °C',density:'2.067 g/cm³',disc:'Known since antiquity',config:'[Ne] 3s² 3p⁴',summary:'The yellow element of brimstone and matchsticks. Vulcanizes rubber, makes sulfuric acid (industry\'s most-produced chemical), and reeks as it burns.'},
+  {n:17,s:'Cl',name:'Chlorine',m:35.45,p:3,g:17,cat:'nonmetal',phase:'Gas',mp:'-101.5 °C',bp:'-34.04 °C',density:'0.003214 g/cm³',disc:'Carl Wilhelm Scheele, 1774',config:'[Ne] 3s² 3p⁵',summary:'A pale green killer of microbes — and people, in WWI trenches. Disinfects water, bleaches paper, and combines with sodium to flavor your food.'},
+  {n:18,s:'Ar',name:'Argon',m:39.948,p:3,g:18,cat:'noble gas',phase:'Gas',mp:'-189.34 °C',bp:'-185.85 °C',density:'0.001784 g/cm³',disc:'Lord Rayleigh & Ramsay, 1894',config:'[Ne] 3s² 3p⁶',summary:'The "lazy" noble gas — abundant in air but reactant to almost nothing. Fills incandescent bulbs and shields welds from oxidation.'},
+  {n:19,s:'K',name:'Potassium',m:39.098,p:4,g:1,cat:'alkali metal',phase:'Solid',mp:'63.5 °C',bp:'759 °C',density:'0.862 g/cm³',disc:'Humphry Davy, 1807',config:'[Ar] 4s¹',summary:'Reacts so violently with water it ignites. As an ion, it keeps every heartbeat regular and every nerve firing.'},
+  {n:20,s:'Ca',name:'Calcium',m:40.078,p:4,g:2,cat:'alkaline earth metal',phase:'Solid',mp:'842 °C',bp:'1484 °C',density:'1.54 g/cm³',disc:'Humphry Davy, 1808',config:'[Ar] 4s²',summary:'Builds bones, shells, and limestone cliffs. Without it your skeleton would collapse and the chalk would never have written on a board.'},
+  {n:21,s:'Sc',name:'Scandium',m:44.956,p:4,g:3,cat:'transition metal',phase:'Solid',mp:'1541 °C',bp:'2836 °C',density:'2.989 g/cm³',disc:'Lars Fredrik Nilson, 1879',config:'[Ar] 3d¹ 4s²',summary:'Named after Scandinavia. Lightens aluminum alloys for aerospace and produces the intense white light of stadium lamps.'},
+  {n:22,s:'Ti',name:'Titanium',m:47.867,p:4,g:4,cat:'transition metal',phase:'Solid',mp:'1668 °C',bp:'3287 °C',density:'4.54 g/cm³',disc:'William Gregor, 1791',config:'[Ar] 3d² 4s²',summary:'As strong as steel, half the weight, and biocompatible. Builds jet engines, racing bicycles, and the implants inside human bodies.'},
+  {n:23,s:'V',name:'Vanadium',m:50.942,p:4,g:5,cat:'transition metal',phase:'Solid',mp:'1910 °C',bp:'3407 °C',density:'6.0 g/cm³',disc:'Andrés Manuel del Río, 1801',config:'[Ar] 3d³ 4s²',summary:'Named after the Norse goddess Vanadis for its rainbow of colored compounds. Hardens steel for tools, pipelines, and Henry Ford\'s Model T.'},
+  {n:24,s:'Cr',name:'Chromium',m:51.996,p:4,g:6,cat:'transition metal',phase:'Solid',mp:'1907 °C',bp:'2671 °C',density:'7.15 g/cm³',disc:'Louis Nicolas Vauquelin, 1797',config:'[Ar] 3d⁵ 4s¹',summary:'Gives stainless steel its corrosion resistance and chrome bumpers their mirror shine. Also paints emeralds green and rubies red.'},
+  {n:25,s:'Mn',name:'Manganese',m:54.938,p:4,g:7,cat:'transition metal',phase:'Solid',mp:'1246 °C',bp:'2061 °C',density:'7.21 g/cm³',disc:'Johan Gottlieb Gahn, 1774',config:'[Ar] 3d⁵ 4s²',summary:'Toughens the steel of railroad tracks and helmets. The dioxide form colors glass, paints prehistoric cave walls, and powers alkaline batteries.'},
+  {n:26,s:'Fe',name:'Iron',m:55.845,p:4,g:8,cat:'transition metal',phase:'Solid',mp:'1538 °C',bp:'2861 °C',density:'7.874 g/cm³',disc:'Known since antiquity',config:'[Ar] 3d⁶ 4s²',summary:'Forged from dying stars. Built civilizations, carries oxygen in your blood, and gives Earth its magnetic field from a liquid core.'},
+  {n:27,s:'Co',name:'Cobalt',m:58.933,p:4,g:9,cat:'transition metal',phase:'Solid',mp:'1495 °C',bp:'2927 °C',density:'8.86 g/cm³',disc:'Georg Brandt, 1735',config:'[Ar] 3d⁷ 4s²',summary:'Named after kobolds — German mine-goblins who tricked smelters. Now powers lithium-ion batteries and pigments cobalt blue ceramics.'},
+  {n:28,s:'Ni',name:'Nickel',m:58.693,p:4,g:10,cat:'transition metal',phase:'Solid',mp:'1455 °C',bp:'2913 °C',density:'8.912 g/cm³',disc:'Axel Fredrik Cronstedt, 1751',config:'[Ar] 3d⁸ 4s²',summary:'Tough, magnetic, and resistant to corrosion. Plates your nickels, fortifies stainless steel, and forms most of Earth\'s solid inner core.'},
+  {n:29,s:'Cu',name:'Copper',m:63.546,p:4,g:11,cat:'transition metal',phase:'Solid',mp:'1084.62 °C',bp:'2562 °C',density:'8.96 g/cm³',disc:'Known since antiquity',config:'[Ar] 3d¹⁰ 4s¹',summary:'The first metal humans worked. Conducts electricity nearly as well as silver — every wire in your wall, every pipe, every penny.'},
+  {n:30,s:'Zn',name:'Zinc',m:65.38,p:4,g:12,cat:'transition metal',phase:'Solid',mp:'419.53 °C',bp:'907 °C',density:'7.134 g/cm³',disc:'Andreas Sigismund Marggraf, 1746',config:'[Ar] 3d¹⁰ 4s²',summary:'Galvanizes steel against rust, alloys with copper to make brass, and quietly runs over 300 enzymes in your body.'},
+  {n:31,s:'Ga',name:'Gallium',m:69.723,p:4,g:13,cat:'post-transition metal',phase:'Solid',mp:'29.76 °C',bp:'2204 °C',density:'5.907 g/cm³',disc:'Lecoq de Boisbaudran, 1875',config:'[Ar] 3d¹⁰ 4s² 4p¹',summary:'Melts in the palm of your hand. Predicted by Mendeleev a decade before its discovery — vindication of the periodic law.'},
+  {n:32,s:'Ge',name:'Germanium',m:72.630,p:4,g:14,cat:'metalloid',phase:'Solid',mp:'938.25 °C',bp:'2833 °C',density:'5.323 g/cm³',disc:'Clemens Winkler, 1886',config:'[Ar] 3d¹⁰ 4s² 4p²',summary:'The semiconductor of the first transistors. Now used in fiber optics and infrared lenses for night vision.'},
+  {n:33,s:'As',name:'Arsenic',m:74.922,p:4,g:15,cat:'metalloid',phase:'Solid',mp:'817 °C',bp:'614 °C (sub.)',density:'5.776 g/cm³',disc:'Albertus Magnus, c. 1250',config:'[Ar] 3d¹⁰ 4s² 4p³',summary:'The poisoner\'s favorite — tasteless, odorless, deadly. Once dosed Victorian wallpaper green; now treats certain leukemias.'},
+  {n:34,s:'Se',name:'Selenium',m:78.971,p:4,g:16,cat:'nonmetal',phase:'Solid',mp:'221 °C',bp:'685 °C',density:'4.809 g/cm³',disc:'Jöns Jacob Berzelius, 1817',config:'[Ar] 3d¹⁰ 4s² 4p⁴',summary:'Named after the Moon. Reacts to light — once central to photocopiers and photocells. Essential trace nutrient, toxic in excess.'},
+  {n:35,s:'Br',name:'Bromine',m:79.904,p:4,g:17,cat:'nonmetal',phase:'Liquid',mp:'-7.2 °C',bp:'58.8 °C',density:'3.122 g/cm³',disc:'Antoine Jérôme Balard, 1826',config:'[Ar] 3d¹⁰ 4s² 4p⁵',summary:'One of only two liquid elements at room temperature. Deep red, choking, and once added to gasoline to scavenge lead.'},
+  {n:36,s:'Kr',name:'Krypton',m:83.798,p:4,g:18,cat:'noble gas',phase:'Gas',mp:'-157.37 °C',bp:'-153.41 °C',density:'0.003733 g/cm³',disc:'Ramsay & Travers, 1898',config:'[Ar] 3d¹⁰ 4s² 4p⁶',summary:'Greek for "hidden one." Once defined the length of a meter by the wavelength of its orange-red emission line.'},
+  {n:37,s:'Rb',name:'Rubidium',m:85.468,p:5,g:1,cat:'alkali metal',phase:'Solid',mp:'39.30 °C',bp:'688 °C',density:'1.532 g/cm³',disc:'Bunsen & Kirchhoff, 1861',config:'[Kr] 5s¹',summary:'Found through the crimson light of its spectral lines. So reactive it must be stored under vacuum or inert gas.'},
+  {n:38,s:'Sr',name:'Strontium',m:87.62,p:5,g:2,cat:'alkaline earth metal',phase:'Solid',mp:'777 °C',bp:'1382 °C',density:'2.64 g/cm³',disc:'Adair Crawford, 1790',config:'[Kr] 5s²',summary:'Paints fireworks scarlet red. Its radioactive isotope-90 was the haunting fallout signature of atmospheric nuclear tests.'},
+  {n:39,s:'Y',name:'Yttrium',m:88.906,p:5,g:3,cat:'transition metal',phase:'Solid',mp:'1526 °C',bp:'2930 °C',density:'4.469 g/cm³',disc:'Johan Gadolin, 1789',config:'[Kr] 4d¹ 5s²',summary:'Named after the Swedish village of Ytterby — source of four elements. Lights up the red phosphor of older television screens.'},
+  {n:40,s:'Zr',name:'Zirconium',m:91.224,p:5,g:4,cat:'transition metal',phase:'Solid',mp:'1855 °C',bp:'4409 °C',density:'6.506 g/cm³',disc:'Martin Heinrich Klaproth, 1789',config:'[Kr] 4d² 5s²',summary:'Corrosion-resistant even in nuclear reactor cores. Cubic zirconia mimics the brilliance of diamond for a fraction of the price.'},
+  {n:41,s:'Nb',name:'Niobium',m:92.906,p:5,g:5,cat:'transition metal',phase:'Solid',mp:'2477 °C',bp:'4744 °C',density:'8.57 g/cm³',disc:'Charles Hatchett, 1801',config:'[Kr] 4d⁴ 5s¹',summary:'Named after Niobe, daughter of Tantalus. Superconducts at low temperatures — used in MRI magnets and particle accelerators.'},
+  {n:42,s:'Mo',name:'Molybdenum',m:95.95,p:5,g:6,cat:'transition metal',phase:'Solid',mp:'2623 °C',bp:'4639 °C',density:'10.22 g/cm³',disc:'Carl Wilhelm Scheele, 1778',config:'[Kr] 4d⁵ 5s¹',summary:'Withstands extreme heat — used in rocket nozzles and the filaments of high-intensity lamps. Essential to nitrogen-fixing enzymes.'},
+  {n:43,s:'Tc',name:'Technetium',m:98,p:5,g:7,cat:'transition metal',phase:'Solid',mp:'2157 °C',bp:'4265 °C',density:'11 g/cm³',disc:'Perrier & Segrè, 1937',config:'[Kr] 4d⁵ 5s²',summary:'The first element created in a laboratory. All isotopes are radioactive. Its short-lived form scans bones and hearts in modern medicine.'},
+  {n:44,s:'Ru',name:'Ruthenium',m:101.07,p:5,g:8,cat:'transition metal',phase:'Solid',mp:'2334 °C',bp:'4150 °C',density:'12.37 g/cm³',disc:'Karl Ernst Claus, 1844',config:'[Kr] 4d⁷ 5s¹',summary:'Named after Ruthenia (Russia). Hardens platinum alloys for fountain pen nibs and electrical contacts; catalyzes industrial reactions.'},
+  {n:45,s:'Rh',name:'Rhodium',m:102.91,p:5,g:9,cat:'transition metal',phase:'Solid',mp:'1964 °C',bp:'3695 °C',density:'12.41 g/cm³',disc:'William Hyde Wollaston, 1804',config:'[Kr] 4d⁸ 5s¹',summary:'One of the rarest and most expensive elements. Plates jewelry and powers catalytic converters that scrub car exhaust.'},
+  {n:46,s:'Pd',name:'Palladium',m:106.42,p:5,g:10,cat:'transition metal',phase:'Solid',mp:'1554.9 °C',bp:'2963 °C',density:'12.02 g/cm³',disc:'William Hyde Wollaston, 1803',config:'[Kr] 4d¹⁰',summary:'Absorbs 900 times its volume in hydrogen. The workhorse catalyst of catalytic converters and modern Nobel-Prize-winning chemistry.'},
+  {n:47,s:'Ag',name:'Silver',m:107.87,p:5,g:11,cat:'transition metal',phase:'Solid',mp:'961.78 °C',bp:'2162 °C',density:'10.501 g/cm³',disc:'Known since antiquity',config:'[Kr] 4d¹⁰ 5s¹',summary:'The best electrical and thermal conductor of any element. Made photography possible and now resists microbes in medical dressings.'},
+  {n:48,s:'Cd',name:'Cadmium',m:112.41,p:5,g:12,cat:'transition metal',phase:'Solid',mp:'321.07 °C',bp:'767 °C',density:'8.69 g/cm³',disc:'Friedrich Stromeyer, 1817',config:'[Kr] 4d¹⁰ 5s²',summary:'Toxic, soft, and bluish-white. Once painted yellow lines on roads; now mostly relegated to rechargeable Ni-Cd batteries.'},
+  {n:49,s:'In',name:'Indium',m:114.82,p:5,g:13,cat:'post-transition metal',phase:'Solid',mp:'156.60 °C',bp:'2072 °C',density:'7.31 g/cm³',disc:'Reich & Richter, 1863',config:'[Kr] 4d¹⁰ 5s² 5p¹',summary:'Named after the indigo line in its spectrum. Indium tin oxide makes the transparent conductive coating on every touch screen.'},
+  {n:50,s:'Sn',name:'Tin',m:118.71,p:5,g:14,cat:'post-transition metal',phase:'Solid',mp:'231.93 °C',bp:'2602 °C',density:'7.287 g/cm³',disc:'Known since antiquity',config:'[Kr] 4d¹⁰ 5s² 5p²',summary:'Plated the cans that fed armies and explorers. Alloyed with copper makes bronze — the metal that named an age.'},
+  {n:51,s:'Sb',name:'Antimony',m:121.76,p:5,g:15,cat:'metalloid',phase:'Solid',mp:'630.63 °C',bp:'1587 °C',density:'6.685 g/cm³',disc:'Known since antiquity',config:'[Kr] 4d¹⁰ 5s² 5p³',summary:'Lined the eyes of pharaohs as kohl. Today it hardens lead in car batteries and gives flame retardancy to fabrics and plastics.'},
+  {n:52,s:'Te',name:'Tellurium',m:127.60,p:5,g:16,cat:'metalloid',phase:'Solid',mp:'449.51 °C',bp:'988 °C',density:'6.232 g/cm³',disc:'Franz-Joseph Müller, 1782',config:'[Kr] 4d¹⁰ 5s² 5p⁴',summary:'Named after the Latin for Earth. Imparts the garlicky breath of those who handle it; alloys with cadmium for solar panels.'},
+  {n:53,s:'I',name:'Iodine',m:126.90,p:5,g:17,cat:'nonmetal',phase:'Solid',mp:'113.7 °C',bp:'184.3 °C',density:'4.93 g/cm³',disc:'Bernard Courtois, 1811',config:'[Kr] 4d¹⁰ 5s² 5p⁵',summary:'Sublimates from solid to violet vapor. Essential to thyroid hormones; added to table salt to prevent goiter worldwide.'},
+  {n:54,s:'Xe',name:'Xenon',m:131.29,p:5,g:18,cat:'noble gas',phase:'Gas',mp:'-111.74 °C',bp:'-108.09 °C',density:'0.005887 g/cm³',disc:'Ramsay & Travers, 1898',config:'[Kr] 4d¹⁰ 5s² 5p⁶',summary:'Greek for "stranger." Flashes in stroboscopes and camera bulbs; can produce general anesthesia despite being noble.'},
+  {n:55,s:'Cs',name:'Caesium',m:132.91,p:6,g:1,cat:'alkali metal',phase:'Solid',mp:'28.5 °C',bp:'671 °C',density:'1.873 g/cm³',disc:'Bunsen & Kirchhoff, 1860',config:'[Xe] 6s¹',summary:'The most reactive metal — melts on a warm day, explodes on contact with water. Defines the SI second through its atomic vibrations.'},
+  {n:56,s:'Ba',name:'Barium',m:137.33,p:6,g:2,cat:'alkaline earth metal',phase:'Solid',mp:'727 °C',bp:'1845 °C',density:'3.594 g/cm³',disc:'Humphry Davy, 1808',config:'[Xe] 6s²',summary:'Drunk as a milkshake before X-rays to highlight the digestive tract. Colors fireworks brilliant green; its compounds are otherwise toxic.'},
+  {n:57,s:'La',name:'Lanthanum',m:138.91,p:6,g:3,cat:'lanthanide',phase:'Solid',mp:'920 °C',bp:'3464 °C',density:'6.145 g/cm³',disc:'Carl Gustaf Mosander, 1839',config:'[Xe] 5d¹ 6s²',summary:'Lends its name to the lanthanide series. High-refractive-index glass for camera lenses and the cathodes of carbon-arc lamps.'},
+  {n:58,s:'Ce',name:'Cerium',m:140.12,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'795 °C',bp:'3443 °C',density:'6.770 g/cm³',disc:'Berzelius, Hisinger & Klaproth, 1803',config:'[Xe] 4f¹ 5d¹ 6s²',summary:'The most abundant rare earth. Polishes glass, lights flint in lighters (with iron), and scrubs sulfur from petroleum.'},
+  {n:59,s:'Pr',name:'Praseodymium',m:140.91,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'935 °C',bp:'3520 °C',density:'6.773 g/cm³',disc:'Carl Auer von Welsbach, 1885',config:'[Xe] 4f³ 6s²',summary:'Greek for "green twin." Colors glass yellow-green, including welder\'s goggles that block intense glare.'},
+  {n:60,s:'Nd',name:'Neodymium',m:144.24,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1024 °C',bp:'3074 °C',density:'7.007 g/cm³',disc:'Carl Auer von Welsbach, 1885',config:'[Xe] 4f⁴ 6s²',summary:'Powers the strongest permanent magnets ever made — in headphones, hard drives, wind turbines, and electric motors.'},
+  {n:61,s:'Pm',name:'Promethium',m:145,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1042 °C',bp:'3000 °C',density:'7.26 g/cm³',disc:'Marinsky, Glendenin & Coryell, 1945',config:'[Xe] 4f⁵ 6s²',summary:'Named after Prometheus, who stole fire. All isotopes radioactive — once lit luminous watch dials with a soft green glow.'},
+  {n:62,s:'Sm',name:'Samarium',m:150.36,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1072 °C',bp:'1794 °C',density:'7.520 g/cm³',disc:'Lecoq de Boisbaudran, 1879',config:'[Xe] 4f⁶ 6s²',summary:'First element named after a person — Russian engineer Samarsky. Forms magnets that hold their strength at high temperatures.'},
+  {n:63,s:'Eu',name:'Europium',m:151.96,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'822 °C',bp:'1529 °C',density:'5.243 g/cm³',disc:'Eugène-Anatole Demarçay, 1896',config:'[Xe] 4f⁷ 6s²',summary:'The red and blue phosphors that brighten Euro banknotes — and once colored every CRT television screen.'},
+  {n:64,s:'Gd',name:'Gadolinium',m:157.25,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1313 °C',bp:'3273 °C',density:'7.895 g/cm³',disc:'Jean Charles Galissard de Marignac, 1880',config:'[Xe] 4f⁷ 5d¹ 6s²',summary:'Strongly paramagnetic. Injected as a contrast agent to make MRI scans glow with detail of soft tissues.'},
+  {n:65,s:'Tb',name:'Terbium',m:158.93,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1356 °C',bp:'3230 °C',density:'8.229 g/cm³',disc:'Carl Gustaf Mosander, 1843',config:'[Xe] 4f⁹ 6s²',summary:'Another element of Ytterby village. Produces the green in trichromatic phosphor lighting and the yellow of older TV tubes.'},
+  {n:66,s:'Dy',name:'Dysprosium',m:162.50,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1412 °C',bp:'2567 °C',density:'8.55 g/cm³',disc:'Lecoq de Boisbaudran, 1886',config:'[Xe] 4f¹⁰ 6s²',summary:'Greek for "hard to get at." Keeps neodymium magnets working at high temperatures — critical for hybrid car motors.'},
+  {n:67,s:'Ho',name:'Holmium',m:164.93,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1474 °C',bp:'2700 °C',density:'8.795 g/cm³',disc:'Cleve & Soret, 1878',config:'[Xe] 4f¹¹ 6s²',summary:'Named after Stockholm. Has the highest magnetic permeability of any element — focuses the world\'s strongest research magnets.'},
+  {n:68,s:'Er',name:'Erbium',m:167.26,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1529 °C',bp:'2868 °C',density:'9.066 g/cm³',disc:'Carl Gustaf Mosander, 1843',config:'[Xe] 4f¹² 6s²',summary:'Amplifies light in the fiber-optic cables that carry the internet across oceans. Tints glass and porcelain a soft pink.'},
+  {n:69,s:'Tm',name:'Thulium',m:168.93,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'1545 °C',bp:'1950 °C',density:'9.321 g/cm³',disc:'Per Teodor Cleve, 1879',config:'[Xe] 4f¹³ 6s²',summary:'Named after Thule, the legendary land of the far north. The rarest stable lanthanide — used in portable X-ray devices.'},
+  {n:70,s:'Yb',name:'Ytterbium',m:173.05,p:6,g:0,cat:'lanthanide',phase:'Solid',mp:'824 °C',bp:'1196 °C',density:'6.965 g/cm³',disc:'Jean Charles Galissard de Marignac, 1878',config:'[Xe] 4f¹⁴ 6s²',summary:'Last of Ytterby\'s four elements. Powers some of the most accurate atomic clocks ever built — losing one second in 15 billion years.'},
+  {n:71,s:'Lu',name:'Lutetium',m:174.97,p:6,g:3,cat:'lanthanide',phase:'Solid',mp:'1663 °C',bp:'3402 °C',density:'9.840 g/cm³',disc:'Urbain, von Welsbach & James, 1907',config:'[Xe] 4f¹⁴ 5d¹ 6s²',summary:'The densest and last of the lanthanides. Named after Lutetia, the Roman name for Paris. Catalyzes petroleum cracking.'},
+  {n:72,s:'Hf',name:'Hafnium',m:178.49,p:6,g:4,cat:'transition metal',phase:'Solid',mp:'2233 °C',bp:'4603 °C',density:'13.31 g/cm³',disc:'Coster & Hevesy, 1923',config:'[Xe] 4f¹⁴ 5d² 6s²',summary:'Named after Hafnia, the Latin name for Copenhagen. Absorbs neutrons in nuclear submarine reactor control rods.'},
+  {n:73,s:'Ta',name:'Tantalum',m:180.95,p:6,g:5,cat:'transition metal',phase:'Solid',mp:'3017 °C',bp:'5458 °C',density:'16.654 g/cm³',disc:'Anders Gustaf Ekeberg, 1802',config:'[Xe] 4f¹⁴ 5d³ 6s²',summary:'Named after Tantalus for its inability to absorb acid. Packs capacitors into every phone, camera, and gaming console.'},
+  {n:74,s:'W',name:'Tungsten',m:183.84,p:6,g:6,cat:'transition metal',phase:'Solid',mp:'3422 °C',bp:'5555 °C',density:'19.25 g/cm³',disc:'Juan José & Fausto Elhuyar, 1783',config:'[Xe] 4f¹⁴ 5d⁴ 6s²',summary:'The highest melting point of any metal. From "tung sten" — Swedish for "heavy stone." Filaments in old bulbs, tips on drills.'},
+  {n:75,s:'Re',name:'Rhenium',m:186.21,p:6,g:7,cat:'transition metal',phase:'Solid',mp:'3186 °C',bp:'5596 °C',density:'21.02 g/cm³',disc:'Noddack, Tacke & Berg, 1925',config:'[Xe] 4f¹⁴ 5d⁵ 6s²',summary:'One of the rarest stable elements — the last to be discovered with a stable isotope. Alloyed into jet engine turbine blades.'},
+  {n:76,s:'Os',name:'Osmium',m:190.23,p:6,g:8,cat:'transition metal',phase:'Solid',mp:'3033 °C',bp:'5012 °C',density:'22.59 g/cm³',disc:'Smithson Tennant, 1803',config:'[Xe] 4f¹⁴ 5d⁶ 6s²',summary:'The densest naturally occurring element. Named for its pungent smell ("osme" — Greek for odor). Tips fountain pens and phonograph needles.'},
+  {n:77,s:'Ir',name:'Iridium',m:192.22,p:6,g:9,cat:'transition metal',phase:'Solid',mp:'2466 °C',bp:'4428 °C',density:'22.56 g/cm³',disc:'Smithson Tennant, 1803',config:'[Xe] 4f¹⁴ 5d⁷ 6s²',summary:'Almost as dense as osmium. Its anomalous abundance in a global clay layer revealed the asteroid that ended the dinosaurs.'},
+  {n:78,s:'Pt',name:'Platinum',m:195.08,p:6,g:10,cat:'transition metal',phase:'Solid',mp:'1768.3 °C',bp:'3825 °C',density:'21.46 g/cm³',disc:'Antonio de Ulloa, 1735',config:'[Xe] 4f¹⁴ 5d⁹ 6s¹',summary:'A symbol of permanence — wedding rings, anniversary records, the original kilogram standard. Catalyzes most car emission control.'},
+  {n:79,s:'Au',name:'Gold',m:196.97,p:6,g:11,cat:'transition metal',phase:'Solid',mp:'1064.18 °C',bp:'2856 °C',density:'19.282 g/cm³',disc:'Known since antiquity',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s¹',summary:'Forged in colliding neutron stars. Never tarnishes, conducts beautifully, and has carried meaning across every civilization in history.'},
+  {n:80,s:'Hg',name:'Mercury',m:200.59,p:6,g:12,cat:'transition metal',phase:'Liquid',mp:'-38.83 °C',bp:'356.73 °C',density:'13.5336 g/cm³',disc:'Known since antiquity',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s²',summary:'The only metal liquid at room temperature. Named after the swift god — flows through thermometers, barometers, and old felt hats that drove makers mad.'},
+  {n:81,s:'Tl',name:'Thallium',m:204.38,p:6,g:13,cat:'post-transition metal',phase:'Solid',mp:'304 °C',bp:'1473 °C',density:'11.85 g/cm³',disc:'William Crookes, 1861',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹',summary:'Tasteless, odorless, lethal — the "poisoner\'s poison" of Agatha Christie\'s novels. Mostly banned from rodenticides today.'},
+  {n:82,s:'Pb',name:'Lead',m:207.2,p:6,g:14,cat:'post-transition metal',phase:'Solid',mp:'327.46 °C',bp:'1749 °C',density:'11.342 g/cm³',disc:'Known since antiquity',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²',summary:'Plumbed Roman aqueducts and may have aided the empire\'s fall. Once in paint, pipes, and petrol — now widely restricted.'},
+  {n:83,s:'Bi',name:'Bismuth',m:208.98,p:6,g:15,cat:'post-transition metal',phase:'Solid',mp:'271.4 °C',bp:'1564 °C',density:'9.807 g/cm³',disc:'Claude François Geoffroy, 1753',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³',summary:'Grows iridescent rainbow crystals when slowly cooled. Soothes upset stomachs as Pepto-Bismol; the heaviest stable element.'},
+  {n:84,s:'Po',name:'Polonium',m:209,p:6,g:16,cat:'metalloid',phase:'Solid',mp:'254 °C',bp:'962 °C',density:'9.32 g/cm³',disc:'Pierre & Marie Curie, 1898',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴',summary:'Marie Curie named it after her homeland Poland. Intensely radioactive — used in spy assassinations and once in static eliminators.'},
+  {n:85,s:'At',name:'Astatine',m:210,p:6,g:17,cat:'metalloid',phase:'Solid',mp:'302 °C',bp:'337 °C',density:'7 g/cm³',disc:'Corson, MacKenzie & Segrè, 1940',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵',summary:'The rarest naturally occurring element — less than a teaspoon exists in Earth\'s crust. Named from Greek for "unstable."'},
+  {n:86,s:'Rn',name:'Radon',m:222,p:6,g:18,cat:'noble gas',phase:'Gas',mp:'-71 °C',bp:'-61.7 °C',density:'0.00973 g/cm³',disc:'Friedrich Ernst Dorn, 1900',config:'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶',summary:'A radioactive noble gas that seeps from soil into basements. The second-leading cause of lung cancer after smoking.'},
+  {n:87,s:'Fr',name:'Francium',m:223,p:7,g:1,cat:'alkali metal',phase:'Solid',mp:'27 °C',bp:'677 °C',density:'1.87 g/cm³',disc:'Marguerite Perey, 1939',config:'[Rn] 7s¹',summary:'The second-rarest naturally occurring element. Half-life under an hour — never have more than a few atoms existed at once on Earth.'},
+  {n:88,s:'Ra',name:'Radium',m:226,p:7,g:2,cat:'alkaline earth metal',phase:'Solid',mp:'700 °C',bp:'1737 °C',density:'5.5 g/cm³',disc:'Pierre & Marie Curie, 1898',config:'[Rn] 7s²',summary:'Marie Curie isolated it by hand. Once painted on watch dials by women who pointed their brushes with their lips — and died.'},
+  {n:89,s:'Ac',name:'Actinium',m:227,p:7,g:3,cat:'actinide',phase:'Solid',mp:'1050 °C',bp:'3200 °C',density:'10.07 g/cm³',disc:'André-Louis Debierne, 1899',config:'[Rn] 6d¹ 7s²',summary:'Glows pale blue in the dark from its own radioactivity. Lends its name to the actinide series of heavy radioactive metals.'},
+  {n:90,s:'Th',name:'Thorium',m:232.04,p:7,g:0,cat:'actinide',phase:'Solid',mp:'1750 °C',bp:'4788 °C',density:'11.72 g/cm³',disc:'Jöns Jacob Berzelius, 1829',config:'[Rn] 6d² 7s²',summary:'Named after Thor, Norse god of thunder. A potential future nuclear fuel — more abundant and arguably safer than uranium.'},
+  {n:91,s:'Pa',name:'Protactinium',m:231.04,p:7,g:0,cat:'actinide',phase:'Solid',mp:'1568 °C',bp:'4027 °C',density:'15.37 g/cm³',disc:'Hahn & Meitner, 1917',config:'[Rn] 5f² 6d¹ 7s²',summary:'Decays into actinium — hence "proto-actinium." Among the most expensive natural elements due to extreme rarity and difficulty isolating.'},
+  {n:92,s:'U',name:'Uranium',m:238.03,p:7,g:0,cat:'actinide',phase:'Solid',mp:'1132.2 °C',bp:'4131 °C',density:'18.95 g/cm³',disc:'Martin Heinrich Klaproth, 1789',config:'[Rn] 5f³ 6d¹ 7s²',summary:'Named after the planet Uranus. Discovered to be radioactive by Becquerel; split to fuel reactors and end wars.'},
+  {n:93,s:'Np',name:'Neptunium',m:237,p:7,g:0,cat:'actinide',phase:'Solid',mp:'644 °C',bp:'3902 °C',density:'20.45 g/cm³',disc:'McMillan & Abelson, 1940',config:'[Rn] 5f⁴ 6d¹ 7s²',summary:'The first transuranium element, named after the planet beyond Uranus. A byproduct of nuclear reactors — found only in trace amounts naturally.'},
+  {n:94,s:'Pu',name:'Plutonium',m:244,p:7,g:0,cat:'actinide',phase:'Solid',mp:'639.4 °C',bp:'3228 °C',density:'19.84 g/cm³',disc:'Seaborg et al., 1940',config:'[Rn] 5f⁶ 7s²',summary:'Powered the Nagasaki bomb and the Voyager probes still traveling beyond the solar system. Six allotropes and unique metallurgy.'},
+  {n:95,s:'Am',name:'Americium',m:243,p:7,g:0,cat:'actinide',phase:'Solid',mp:'1176 °C',bp:'2011 °C',density:'13.69 g/cm³',disc:'Seaborg et al., 1944',config:'[Rn] 5f⁷ 7s²',summary:'The smoke detector element. A microgram inside the alarm above your kitchen senses smoke through its alpha radiation.'},
+  {n:96,s:'Cm',name:'Curium',m:247,p:7,g:0,cat:'actinide',phase:'Solid',mp:'1340 °C',bp:'3110 °C',density:'13.51 g/cm³',disc:'Seaborg, James & Ghiorso, 1944',config:'[Rn] 5f⁷ 6d¹ 7s²',summary:'Named after the Curies. So intensely radioactive that it glows purple in the dark from its own decay.'},
+  {n:97,s:'Bk',name:'Berkelium',m:247,p:7,g:0,cat:'actinide',phase:'Solid',mp:'986 °C',bp:'2627 °C',density:'14.79 g/cm³',disc:'Thompson, Ghiorso & Seaborg, 1949',config:'[Rn] 5f⁹ 7s²',summary:'Named after Berkeley, California, where it was synthesized. Used to discover the heaviest element ever made — tennessine.'},
+  {n:98,s:'Cf',name:'Californium',m:251,p:7,g:0,cat:'actinide',phase:'Solid',mp:'900 °C',bp:'1470 °C',density:'15.1 g/cm³',disc:'Thompson, Street, Ghiorso & Seaborg, 1950',config:'[Rn] 5f¹⁰ 7s²',summary:'A potent neutron emitter used to start nuclear reactors and scan airline luggage and oil wells.'},
+  {n:99,s:'Es',name:'Einsteinium',m:252,p:7,g:0,cat:'actinide',phase:'Solid',mp:'860 °C',bp:'996 °C',density:'8.84 g/cm³',disc:'Ghiorso et al., 1952',config:'[Rn] 5f¹¹ 7s²',summary:'Discovered in the fallout of the first hydrogen bomb test. Named after Albert Einstein. No practical uses outside research.'},
+  {n:100,s:'Fm',name:'Fermium',m:257,p:7,g:0,cat:'actinide',phase:'Solid',mp:'1527 °C',bp:'—',density:'9.7 g/cm³',disc:'Ghiorso et al., 1953',config:'[Rn] 5f¹² 7s²',summary:'The heaviest element ever produced by neutron bombardment. Named after Enrico Fermi. Only studied a few atoms at a time.'},
+  {n:101,s:'Md',name:'Mendelevium',m:258,p:7,g:0,cat:'actinide',phase:'Solid',mp:'827 °C',bp:'—',density:'10.3 g/cm³',disc:'Ghiorso, Harvey, Choppin, Thompson & Seaborg, 1955',config:'[Rn] 5f¹³ 7s²',summary:'A tribute to Dmitri Mendeleev, whose 1869 periodic law made these heavy synthetic elements predictable in the first place.'},
+  {n:102,s:'No',name:'Nobelium',m:259,p:7,g:0,cat:'actinide',phase:'Solid',mp:'827 °C',bp:'—',density:'9.9 g/cm³',disc:'Flerov, Ghiorso & others, 1958–66',config:'[Rn] 5f¹⁴ 7s²',summary:'Named after Alfred Nobel, dynamite inventor and prize founder. Synthesized in only minute quantities for research.'},
+  {n:103,s:'Lr',name:'Lawrencium',m:266,p:7,g:3,cat:'actinide',phase:'Solid',mp:'1627 °C',bp:'—',density:'15.6 g/cm³',disc:'Ghiorso et al., 1961',config:'[Rn] 5f¹⁴ 7s² 7p¹',summary:'Named after Ernest Lawrence, inventor of the cyclotron — the very machines used to create elements like this one.'},
+  {n:104,s:'Rf',name:'Rutherfordium',m:267,p:7,g:4,cat:'transition metal',phase:'Solid',mp:'2100 °C',bp:'5500 °C',density:'23.2 g/cm³',disc:'Flerov & Ghiorso labs, 1964/69',config:'[Rn] 5f¹⁴ 6d² 7s²',summary:'First of the superheavy elements. Named after Ernest Rutherford, who first discovered the atomic nucleus.'},
+  {n:105,s:'Db',name:'Dubnium',m:268,p:7,g:5,cat:'transition metal',phase:'Solid',mp:'—',bp:'—',density:'29.3 g/cm³',disc:'JINR & LBNL, 1968',config:'[Rn] 5f¹⁴ 6d³ 7s²',summary:'Named after Dubna, Russia, home of the Joint Institute for Nuclear Research that created many superheavy elements.'},
+  {n:106,s:'Sg',name:'Seaborgium',m:269,p:7,g:6,cat:'transition metal',phase:'Solid',mp:'—',bp:'—',density:'35.0 g/cm³',disc:'Ghiorso et al., 1974',config:'[Rn] 5f¹⁴ 6d⁴ 7s²',summary:'First element named after a living person — Glenn Seaborg, who discovered or co-discovered ten elements.'},
+  {n:107,s:'Bh',name:'Bohrium',m:270,p:7,g:7,cat:'transition metal',phase:'Solid',mp:'—',bp:'—',density:'37.1 g/cm³',disc:'GSI, 1981',config:'[Rn] 5f¹⁴ 6d⁵ 7s²',summary:'Named after Niels Bohr, whose model of the atom underpins our understanding of where these elements should sit in the table.'},
+  {n:108,s:'Hs',name:'Hassium',m:269,p:7,g:8,cat:'transition metal',phase:'Solid',mp:'—',bp:'—',density:'40.7 g/cm³',disc:'GSI, 1984',config:'[Rn] 5f¹⁴ 6d⁶ 7s²',summary:'Named after the German state of Hesse. Only a few hundred atoms have ever been made — each lasting fractions of a second.'},
+  {n:109,s:'Mt',name:'Meitnerium',m:278,p:7,g:9,cat:'unknown',phase:'Solid',mp:'—',bp:'—',density:'37.4 g/cm³',disc:'GSI, 1982',config:'[Rn] 5f¹⁴ 6d⁷ 7s²',summary:'Named after Lise Meitner, who co-discovered nuclear fission but was passed over for the Nobel Prize given to her partner.'},
+  {n:110,s:'Ds',name:'Darmstadtium',m:281,p:7,g:10,cat:'unknown',phase:'Solid',mp:'—',bp:'—',density:'34.8 g/cm³',disc:'GSI, 1994',config:'[Rn] 5f¹⁴ 6d⁸ 7s²',summary:'Named after Darmstadt, Germany, home of the GSI Helmholtz Centre that has discovered six superheavy elements.'},
+  {n:111,s:'Rg',name:'Roentgenium',m:282,p:7,g:11,cat:'unknown',phase:'Solid',mp:'—',bp:'—',density:'28.7 g/cm³',disc:'GSI, 1994',config:'[Rn] 5f¹⁴ 6d⁹ 7s²',summary:'Honors Wilhelm Röntgen, discoverer of X-rays. Predicted to be a noble metal sitting below gold in the table.'},
+  {n:112,s:'Cn',name:'Copernicium',m:285,p:7,g:12,cat:'transition metal',phase:'Gas',mp:'—',bp:'67 °C',density:'14.0 g/cm³',disc:'GSI, 1996',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s²',summary:'Named after Nicolaus Copernicus. Predicted to be a gas at room temperature — strange behavior for a "metal."'},
+  {n:113,s:'Nh',name:'Nihonium',m:286,p:7,g:13,cat:'unknown',phase:'Solid',mp:'430 °C',bp:'1100 °C',density:'16 g/cm³',disc:'RIKEN, 2004',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹',summary:'The first element discovered in Asia and named for Japan ("Nihon"). Added to the table in 2016.'},
+  {n:114,s:'Fl',name:'Flerovium',m:289,p:7,g:14,cat:'post-transition metal',phase:'Solid',mp:'—',bp:'—',density:'14 g/cm³',disc:'JINR & LLNL, 1998',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²',summary:'Named after Soviet physicist Georgy Flerov. Lies in the predicted "island of stability" — slightly longer-lived than its neighbors.'},
+  {n:115,s:'Mc',name:'Moscovium',m:289,p:7,g:15,cat:'unknown',phase:'Solid',mp:'400 °C',bp:'1100 °C',density:'13.5 g/cm³',disc:'JINR & LLNL, 2003',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³',summary:'Named after Moscow Oblast. Decays in less than a second through a chain of alpha emissions.'},
+  {n:116,s:'Lv',name:'Livermorium',m:293,p:7,g:16,cat:'unknown',phase:'Solid',mp:'—',bp:'—',density:'12.9 g/cm³',disc:'JINR & LLNL, 2000',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴',summary:'Named after Lawrence Livermore National Laboratory, the U.S. partner in synthesizing many superheavy elements.'},
+  {n:117,s:'Ts',name:'Tennessine',m:294,p:7,g:17,cat:'unknown',phase:'Solid',mp:'—',bp:'—',density:'7.2 g/cm³',disc:'JINR, ORNL & Vanderbilt, 2010',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵',summary:'Named after Tennessee — home of Oak Ridge National Laboratory, which produced the berkelium target needed for its synthesis.'},
+  {n:118,s:'Og',name:'Oganesson',m:294,p:7,g:18,cat:'noble gas',phase:'Solid',mp:'—',bp:'80 °C',density:'7 g/cm³',disc:'JINR & LLNL, 2002',config:'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶',summary:'The heaviest known element. Named after Yuri Oganessian, the only living person to have an element named for him at the time of naming.'}
+];
+
+const PLACEHOLDERS = [
+  { period: 6, group: 3, label: '57–71' },
+  { period: 7, group: 3, label: '89–103' }
+];
+
+const table = document.getElementById('table');
+const modal = document.getElementById('modal-overlay');
+
+function buildTable() {
+  ELEMENTS.forEach(el => {
+    // skip lanthanides/actinides for the main grid placement
+    if (el.cat === 'lanthanide' && el.n >= 58 && el.n <= 71) {
+      placeInSeries(el, 9, el.n - 57 + 3);
+      return;
+    }
+    if (el.cat === 'actinide' && el.n >= 90 && el.n <= 103) {
+      placeInSeries(el, 10, el.n - 89 + 3);
+      return;
+    }
+    placeElement(el, el.p, el.g);
+  });
+
+  PLACEHOLDERS.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'placeholder';
+    div.style.gridRow = p.period;
+    div.style.gridColumn = p.group;
+    div.textContent = p.label;
+    table.appendChild(div);
+  });
+}
+
+function placeElement(el, row, col) {
+  const div = document.createElement('div');
+  div.className = 'element';
+  div.dataset.category = el.cat;
+  div.dataset.search = (el.name + ' ' + el.s).toLowerCase();
+  div.style.gridRow = row;
+  div.style.gridColumn = col;
+  div.style.setProperty('--cat-color', CATEGORY_COLORS[el.cat]);
+  div.innerHTML = `
+    <div class="number">${el.n}</div>
+    <div class="symbol">${el.s}</div>
+    <div class="name">${el.name}</div>
+    <div class="mass">${typeof el.m === 'number' ? el.m.toFixed(2).replace(/\.?0+$/, '') : el.m}</div>
+  `;
+  div.addEventListener('click', () => openModal(el));
+  table.appendChild(div);
+}
+
+function placeInSeries(el, row, col) {
+  placeElement(el, row, col);
+}
+
+function openModal(el) {
+  document.getElementById('m-number').textContent = `№ ${el.n}`;
+  document.getElementById('m-symbol').textContent = el.s;
+  document.getElementById('m-name').textContent = el.name;
+  document.getElementById('m-category').textContent = el.cat;
+  document.getElementById('m-mass').innerHTML = `${el.m} <span class="unit">u</span>`;
+  document.getElementById('m-pg').textContent = `Period ${el.p} · ${el.cat.includes('lanthanide') || el.cat.includes('actinide') ? 'f-block' : 'Group ' + el.g}`;
+  document.getElementById('m-config').textContent = el.config;
+  document.getElementById('m-phase').textContent = el.phase;
+  document.getElementById('m-melt').textContent = el.mp;
+  document.getElementById('m-boil').textContent = el.bp;
+  document.getElementById('m-density').textContent = el.density;
+  document.getElementById('m-disc').textContent = el.disc;
+  document.getElementById('m-summary').textContent = el.summary;
+
+  document.querySelector('.modal-header').style.setProperty('--cat-color', CATEGORY_COLORS[el.cat]);
+  modal.classList.add('active');
+}
+
+function closeModal() {
+  modal.classList.remove('active');
+}
+
+document.getElementById('close-btn').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Filters
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    const els = document.querySelectorAll('.element');
+    let count = 0;
+    els.forEach(el => {
+      if (filter === 'all' || el.dataset.category === filter) {
+        el.classList.remove('dimmed');
+        count++;
+      } else {
+        el.classList.add('dimmed');
+      }
+    });
+    document.getElementById('visible-count').textContent = count;
+  });
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (!q) document.querySelector('[data-filter="all"]').classList.add('active');
+
+  let count = 0;
+  document.querySelectorAll('.element').forEach(el => {
+    if (!q || el.dataset.search.includes(q)) {
+      el.classList.remove('dimmed');
+      count++;
+    } else {
+      el.classList.add('dimmed');
+    }
+  });
+  document.getElementById('visible-count').textContent = count;
+});
+
+buildTable();
+</script>
+</body>
+</html>
